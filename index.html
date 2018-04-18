@@ -1,0 +1,112 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>To-Do List</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="main.css">
+    <script src="jquery-3.3.1.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+ 
+	</head>
+	<body>    
+    <div class="container">
+  		<h2>To Do</h2>
+  		<form name="listForm">
+  			<input type="text" name="listItem" placeholder="Add new" class="itemTarea">
+        <button type="button" class="button">+</button>
+        <!-- <button type="button" class="buttonDel">-</button>-->
+      </form>
+  		<br><br>
+      <!-- Class 'sortable' enables sorting with jQuery UI method sortable() -->
+  		<ul class="lista">
+      
+      </ul>
+    </div>
+    </body>
+    
+<script>
+ $().ready(function(){
+
+
+
+  $(".button").click(function(){
+          $.ajax({
+          url: "add.php",
+          data:{"tarea":$(".itemTarea").val()},
+          method:"POST"
+          })
+        .done(function(response){
+            alert(response)
+          
+          })  //fin done
+    })
+
+        $.ajax({
+        url: "listar.php",
+        method:"GET"})
+        .done(function(resp){
+          console.log(resp)
+          for (var i = 0; i < resp.length; i++)
+                {
+                  $('.lista').append($('<li class="tarea" id="' + resp[i].id + '" >' + resp[i].nombre  + '<i id=borrar' + resp[i].id + ' class="fa fa-times-circle botonDel" aria-hidden="true"></i>' + '</li>'));
+                }
+      //el dolar del append lo que hace es convertir en un objeto jquery
+      });
+
+
+$('.lista').on('click','.botonDel', function(evento){
+  console.log(JSON.stringify(evento.target.id));
+  $.ajax({
+            url: "delete.php",
+            data:{"id":evento.target.id.substring(6)},
+            method:"POST"
+           })
+          .done(function(response){
+              alert(response)
+              $(evento.target.parentElement ).remove();
+            })  
+})
+
+
+$('.lista').on('click','.tarea', function(evento){
+  console.log(JSON.stringify(evento.target.id));
+  $.ajax({
+            url: "listarSubtareas.php",
+            data:{"id":evento.target.id},
+            method:"GET"
+           })
+          .done(function(resp){
+
+            if ($('.lista #subtarea'+ evento.target.id).length===0){
+            $('.lista #'+ evento.target.id).append('<ul id=subtarea'+ evento.target.id +'></ul>')
+
+              for (var i = 0; i < resp.length; i++)
+                {
+                  $('#subtarea'+ evento.target.id).append($('<li class="subtarea" id=subtareas' + resp[i].id + '>' + resp[i].nombre  + '<i id=borrarSub' + resp[i].id + ' class="fa fa-times-circle botonDelSub" aria-hidden="true"></i>' + '</li>'));
+                }  
+            }
+            })  
+
+})
+
+$('.lista').on('click','.botonDelSub', function(evento){
+  console.log(JSON.stringify(evento.target.id));
+  $.ajax({
+            url: "deleteSub.php",
+            data:{"id":evento.target.id.substring(9)},
+            method:"POST"
+           })
+          .done(function(response){
+              $(evento.target.parentElement ).remove();
+            })  
+
+})
+    
+});        
+
+</script>
+
+</html>
+
+
